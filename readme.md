@@ -362,18 +362,17 @@ and sets its contents to:
 ```javascript
 'use strict';
 
-var mongoose = require('mongoose'),
-    Schema = mongoose.Schema;
+import mongoose from 'mongoose';
 
-var CartItemSchema = new Schema({
+var CartItemSchema = new mongoose.Schema({
   item : {
-    type : Schema.Types.ObjectId,
+    type : mongoose.Schema.Types.ObjectId,
     ref: 'Item'
   },
   qty : Number
 });
 
-module.exports = mongoose.model('CartItem', CartItemSchema);
+export default mongoose.model('CartItem', CartItemSchema);
 ```
 
 4d. Edit `server/api/user/user.model.js` and add the lines:
