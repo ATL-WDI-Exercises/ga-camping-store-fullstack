@@ -39,11 +39,69 @@ yo angular-fullstack
 
 When prompted, you can choose all of the default values.
 
-1c. Initialize Git repo and commit all changes:
+1c. Browse the new project:
+
+Use `sublime` to look at the newly scaffolded _MEAN Stack_ project.
+
+Notice that we have the following files in our project's home directory:
+
+* `bower.json` - our _bower_ managed (client-side) dependencies
+* `package.json` - our _npm_ managed (server-side) dependencies
+* `gulpfile.babel.js` - configuration for the _gulp_ builds
+* `.gitignore` - a nice git ignore file pre-filled with most of what we will need to ignore.
+* `client` - directory containing all of our client code (HTML/CSS/AngularJS)
+* `server` - directory containing all of our server code (Express)
+
+1d. Initialize Git repo and commit all changes:
 
 ```bash
 git init
 git add -A
 git commit -m "Created the project."
 git tag step1
+```
+
+1e. Summary
+
+In this step we used the `angular-fullstack` _Yeoman_ generator to scaffold a new _MEAN Stack_ app. The generator created all of our gulp, bower, npm, and git configuration files as well as starter code for both our client and our server.
+
+### Step 2 - Install Additional Bower Components
+
+2a. Install the `angular-animate` and `animate.css` components:
+
+```bash
+bower install --save angular-animate
+bower install --save animate.css
+```
+
+2b. Edit `client/app/app.js` and add the 'ngAnimate' module to our app module's dependencies:
+
+```javascript
+'use strict';
+
+angular.module('gaCampingStoreApp', [
+                 'gaCampingStoreApp.auth',
+                 'gaCampingStoreApp.admin',
+                 'gaCampingStoreApp.constants',
+                 'ngCookies',
+                 'ngResource',
+                 'ngSanitize',
+                 'btford.socket-io',
+                 'ui.router',
+                 'ui.bootstrap',
+                 'validation.match',
+                 'ngAnimate'
+  ])
+  .config(function($urlRouterProvider, $locationProvider) {
+    $urlRouterProvider.otherwise('/');
+    $locationProvider.html5Mode(true);
+  });
+```
+
+2c. Commit changes:
+
+```bash
+git add -A
+git commit -m "Added some bower components."
+git tag step2
 ```
