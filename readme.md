@@ -21,6 +21,8 @@ The steps below will demonstrate how to create this project from scratch:
 * [Step 12 - Deploying to Heroku](#step-12---deploying-to-heroku)
 * [Notes on Deploying to Heroku](#notes-on-deploying-to-heroku)
 
+---
+
 ### Step 1 - Setup The Project
 
 1a. Install the [Angular Fullstack](https://github.com/DaftMonk/generator-angular-fullstack) Yeoman generator.
@@ -64,6 +66,8 @@ git tag step1
 1e. Summary
 
 In this step we used the `angular-fullstack` _Yeoman_ generator to scaffold a new _MEAN Stack_ app. The generator created all of our gulp, bower, npm, and git configuration files as well as starter code for both our client and our server.
+
+---
 
 ### Step 2 - Install Additional Bower Components
 
@@ -117,6 +121,8 @@ git tag step2
 2e. Summary
 
 We used `bower` to install two new client-side dependencies. We added one of them (`ng-animate`) to our `angular.module` declaration so that it would get properly bootstrapped by angular. We did *not* need to add `animate.css` to our `angular.module` declaration because it is not an _Angular_ module (`animate.css` is a simple CSS library).
+
+---
 
 ### Step 3 - Create a RESTful API Endpoint and Seed Data for Items
 
@@ -317,4 +323,63 @@ git tag step3
 
 In this step we used a _sub-generator_ of the _angular-fullstack_ generator to create a new RESTful API endpoint for our camping store items. Then we updated the generated _Mongoose_ model to define the _schema_ for an `item`. Finally we added some seed data for our camping store items.
 
+---
 
+### Step 4 - Create a New Client Route for Items
+
+In this step we will create a new _client-side_ route for our items. Note that in the _MEAN Stack_ we have both _server-side_ and _client-side_ routes:
+
+* _server-side_ routes - consist of the RESTful endpoints that our client code can call via HTTP GET/PUT/POST/DELETE requests.
+* _client-side_ routes - consist of the views that we can navigate to inside our _AngularJS_ application.
+
+4a. Use the Yeoman generator to create a new client route for our items view:
+
+```bash
+yo angular-fullstack:route items
+```
+
+Accept the default values for the module name, source location, and url of the route.
+
+4b. Edit the file `client/components/navbar/navbar.html` and remove the `ng-controller` attribute. We don't need it as it is specified in the `navbar.directive.js` file (this is a bug in the generator).
+
+change this:
+
+```html
+<div class="navbar navbar-default navbar-static-top" ng-controller="NavbarController">
+```
+
+to this:
+
+```html
+<div class="navbar navbar-default navbar-static-top">
+```
+
+Also change the following line:
+
+```html
+<a href="/" class="navbar-brand">ga-camping-store</a>
+```
+
+to this:
+
+```html
+<a href="/" class="navbar-brand">Home</a>
+```
+
+and add this line after the `Admin` link:
+
+```html
+<li ng-show="nav.isLoggedIn()" ui-sref-active="active"><a ui-sref="items">Items</a></li>
+```
+
+4c. Test out your NavBar and new _Client-Side_ route:
+
+You may need to restart your server (using `gulp serve`). Then login and see if the NavBar contains the _Items_ link. Click on it and see if your _Items_ view appears.
+
+4d. Commit your work
+
+```bash
+git add -A
+git commit -m "Created a new Client Route for Items."
+git tag step4
+```
