@@ -296,7 +296,7 @@ Item.find({}).remove()
 });
 ```
 
-If you have `grunt serve` running and you save the `seed.js` file you should see the message "Finished populating 12 items." You can also verify that the seed data was saved to `mongodb` using `mongo` or a tool like [mongo-express](http://andzdroid.github.io/mongo-express/).
+If you have `gulp serve` running and you save the `seed.js` file you should see the message "Finished populating 12 items." You can also verify that the seed data was saved to `mongodb` using `mongo` or a tool like [mongo-express](http://andzdroid.github.io/mongo-express/).
 
 3c. Test out your new RESTful endpoint:
 
@@ -615,12 +615,12 @@ yo angular-fullstack:service cartService
 
 When prompted, accept the default values except change the module name for each service to `gaCampingStoreApp` instead of `gaCampingStoreApp.itemService` and `gaCampingStoreApp.cartService`.
 
-6b. Edit `client/app/items/itemService/itemService.service.js` and set its contents to:
+6b. Edit `client/app/itemService/itemService.service.js` and set its contents to:
 
 ```javascript
 'use strict';
 
-angular.module('gaCampingStoreApp.itemService')
+angular.module('gaCampingStoreApp')
   .service('itemService', function($http) {
 
     var svc = this;
