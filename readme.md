@@ -333,11 +333,10 @@ DELETE /api/users/:userid/cart/            # Remove all items from the cart
 
 ```bash
 yo angular-fullstack:endpoint cart
+? What will the url of your endpoint be? /api/users/:userId/cart
 ```
 
-For the url of the endpoint, enter: `/api/users/:userId/cart`.
-
-10b. Edit `server/api/cart/index.js` and replace the routes with the following:
+4b. Edit `server/api/cart/index.js` and replace the routes with the following:
 
 ```javascript
 router.get   ('/:userid/cart/',        controller.get);
@@ -346,7 +345,12 @@ router.delete('/:userid/cart/:itemid', controller.removeItem);
 router.delete('/:userid/cart/',        controller.removeAllItems);
 ```
 
-10c. Rename `server/api/cart/cart.model.js` to `server/api/cart/cartitem.model.js`
+4c. Rename `server/api/cart/cart.model.js` to `server/api/cart/cartitem.model.js`:
+
+```bash
+mv server/api/cart/cart.model.js server/api/cart/cartitem.model.js
+```
+
 and sets its contents to:
 
 ```javascript
@@ -366,26 +370,26 @@ var CartItemSchema = new Schema({
 module.exports = mongoose.model('CartItem', CartItemSchema);
 ```
 
-10d. Edit `server/api/user/user.model.js` and add the lines:
+4d. Edit `server/api/user/user.model.js` and add the lines:
 
 ```javascript
 // add this near the top:
-var CartItem = require('../cart/cartitem.model');
+import CartItem from '../cart/cartitem.model';
 
 ...
   // add this to the UserSchema:
   cart: [CartItem.schema]
 ```
 
-10e. Replace the contents of `server/api/cart/cart.controller.js` with:
+4e. Replace the contents of `server/api/cart/cart.controller.js` with:
 
 ```javascript
 'use strict';
 
-var _ = require('lodash');
-var CartItem = require('./cartitem.model');
-var Item = require('../item/item.model');
-var User = require('../user/user.model');
+import _ from 'lodash';
+import CartItem from './cartitem.model';
+import Item from '../item/item.model';
+import User from '../user/user.model';
 
 function findItemInCart(user, id) {
   // _.find([1, 2, 3, 4, 5, 6], function(num){ return num % 2 == 0; });
@@ -500,7 +504,7 @@ function handleError(res, err) {
 }
 ```
 
-10f. Edit `server/routes.js` and replace the line:
+4f. Edit `server/routes.js` and replace the line:
 
 `app.use('/api/users/:userId/cart', require('./api/cart'));`
 
@@ -508,12 +512,12 @@ with:
 
 `app.use('/api/users',  require('./api/cart'));`
 
-10g. Commit your work:
+4g. Commit your work:
 
 ```bash
 git add -A
 git commit -m "Added RESTful endpoints and model for Shopping Cart."
-git tag step10
+git tag step4
 ```
 
 
