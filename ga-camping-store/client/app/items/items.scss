@@ -1,0 +1,101 @@
+.cart {
+  padding: 10px;
+
+  ul {
+    list-style-type: none;
+  }
+}
+
+.on-sale {
+  color: red;
+}
+
+.qty {
+  width: 60px;
+}
+
+$animation-duration: 0.25s;
+
+.animate-inventory {
+  &.ng-enter {
+    animation: zoomInUp 0.5s;
+  }
+  &.ng-leave {
+    animation: zoomOutDown 0.5s;
+  }
+}
+
+.animate-cart {
+  &.ng-enter {
+    animation: fadeInRight 1s;
+  }
+  &.ng-leave {
+    animation: fadeOutLeft 1s;
+  }
+}
+
+/* =========================== */
+/* Twitter Bootstrap Overrides */
+/* =========================== */
+.jumbotron {
+  text-align: center;
+  padding: 2px 0;
+  margin-bottom: 0;
+}
+
+.list-group-item {
+  border: none;
+}
+
+.dl-horizontal dt {
+    text-align: left;
+    /*margin-bottom: 1em;*/
+    /*width: auto;*/
+    padding-right: 1em;
+}
+
+.dl-horizontal dd {
+    margin-left: 0;
+    margin-bottom: 1em;
+}
+/* ================================== */
+/* End of Twitter Bootstrap Overrides */
+/* ================================== */
+
+.items {
+  padding-left: 0;
+  padding-right: 30px;
+}
+
+.items p {
+  font-size: 2.0rem;
+  margin-left: 20px;
+}
+
+.items h3 {
+  color: #337ab7;
+}
+
+.item {
+  margin-top: 30px;
+}
+
+.item h2 {
+  margin-bottom: 20px;
+}
+
+.item-image {
+  margin-top: 0px;
+  margin-left: 20px;
+}
+
+.item-image img {
+}
+
+.back {
+  margin-top: 40px;
+}
+
+.search {
+  text-align: center;
+}

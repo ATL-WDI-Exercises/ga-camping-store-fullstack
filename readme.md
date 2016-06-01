@@ -8,18 +8,7 @@ This is a simple Camping Store app built with the *MEAN* stack via the Yeoman
 The steps below will demonstrate how to create this project from scratch:
 
 * [Step 1 - Setup The Project](#step-1---setup-the-project)
-* [Step 2 - Install Additional Bower Components](#step-2---install-additional-bower-components)
-* [Step 3 - Create a RESTful API Endpoint and Seed Data for Items](#step-3---create-a-restful-api-endpoint-and-seed-data-for-items)
-* [Step 4 - Create a New Client Route for Items](#step-4---create-a-new-client-route-for-items)
-* [Step 5 - Create ItemService and CartService](#step-5---create-itemservice-and-cartservice)
-* [Step 6 - Implement the Items Controller and Items Filter](#step-6---implement-the-items-controller-and-items-filter)
-* [Step 7 - Implement the Items View](#step-7---implement-the-items-view)
-* [Step 8 - Create a New Route for the Items Detail View](#step-8---create-a-new-route-for-the-items-detail-view)
-* [Step 9 - Call the Server to get the Items](#step-9---call-the-server-to-get-the-items)
-* [Step 10 - Add RESTful endpoints and model for Shopping Cart](#step-10---add-restful-endpoints-and-model-for-shopping-cart)
-* [Step 11 - Integrate the Client Cart with the Server Cart](#step-11---integrate-the-client-cart-with-the-server-cart)
-* [Step 12 - Deploying to Heroku](#step-12---deploying-to-heroku)
-* [Notes on Deploying to Heroku](#notes-on-deploying-to-heroku)
+
 
 ---
 
@@ -325,14 +314,220 @@ In this step we used a _sub-generator_ of the _angular-fullstack_ generator to c
 
 ---
 
-### Step 4 - Create a New Client Route for Items
+
+
+### Step 4 - Add RESTful endpoints and model for Shopping Cart
+
+In this step we will be saving the user's shopping cart to the MongoDB database. Each time a user adds or removes an item from the shopping cart an update will occur to keep the cart up to date in the database.
+
+We will begin by creating a set of RESTful endpoints along with a server controller, model, and schema. The RESTful endpoints will be:
+
+```
+GET    /api/users/:userid/cart/            # Get the cart
+POST   /api/users/:userid/cart/            # Add an item to the cart
+DELETE /api/users/:userid/cart/:itemid     # Remove an item from the cart
+DELETE /api/users/:userid/cart/            # Remove all items from the cart
+```
+
+4a. Use the Yeoman generator to create the new RESTful endpoint for our cart:
+
+```bash
+yo angular-fullstack:endpoint cart
+```
+
+For the url of the endpoint, enter: `/api/users/:userId/cart`.
+
+10b. Edit `server/api/cart/index.js` and replace the routes with the following:
+
+```javascript
+router.get   ('/:userid/cart/',        controller.get);
+router.post  ('/:userid/cart/:itemid', controller.addItem);
+router.delete('/:userid/cart/:itemid', controller.removeItem);
+router.delete('/:userid/cart/',        controller.removeAllItems);
+```
+
+10c. Rename `server/api/cart/cart.model.js` to `server/api/cart/cartitem.model.js`
+and sets its contents to:
+
+```javascript
+'use strict';
+
+var mongoose = require('mongoose'),
+    Schema = mongoose.Schema;
+
+var CartItemSchema = new Schema({
+  item : {
+    type : Schema.Types.ObjectId,
+    ref: 'Item'
+  },
+  qty : Number
+});
+
+module.exports = mongoose.model('CartItem', CartItemSchema);
+```
+
+10d. Edit `server/api/user/user.model.js` and add the lines:
+
+```javascript
+// add this near the top:
+var CartItem = require('../cart/cartitem.model');
+
+...
+  // add this to the UserSchema:
+  cart: [CartItem.schema]
+```
+
+10e. Replace the contents of `server/api/cart/cart.controller.js` with:
+
+```javascript
+'use strict';
+
+var _ = require('lodash');
+var CartItem = require('./cartitem.model');
+var Item = require('../item/item.model');
+var User = require('../user/user.model');
+
+function findItemInCart(user, id) {
+  // _.find([1, 2, 3, 4, 5, 6], function(num){ return num % 2 == 0; });
+  return _.find(user.cart, function(cartItem) {
+    // return cartItem.item === id;    // does not work!
+    console.log('Comparing ' + cartItem.item + ' to ' + id);
+    return cartItem.item.equals(id) || cartItem._id.equals(id);
+  });
+}
+
+// Get the cart from the DB.
+exports.get = function(req, res) {
+  console.log('get, url = ' + req.url);
+  var userId = req.params.userid;
+  console.log('userId: ' + userId);
+
+  User.findById(userId)
+  .populate('cart.item')
+  .exec(function(err, user) {
+    console.log('user: ' + user.name);
+    if (err) { return handleError(res, err); }
+    if (!user) { return res.send(404); }
+    console.log('returning cart: ' + JSON.stringify(user.cart));
+    res.json(200, user.cart);
+  });
+};
+
+// Add a new item to the cart or update the qty and return the cart.
+exports.addItem = function(req, res) {
+  console.log('addItem, url = ' + req.url);
+  var userId = req.params.userid.trim();
+  var itemId = req.params.itemid.trim();
+  console.log('userId: ' + userId + ', itemId: ' + itemId);
+
+  Item.findById(itemId, function(err, item) {
+    if (err) { return handleError(res, err); }
+    if (!item) { return res.send(404); }
+    User.findById(userId, function(err, user) {
+      if (err) { return handleError(res, err); }
+      if (!user) { return res.send(404); }
+
+      // Check if item is already in cart
+      var found = findItemInCart(user, item._id);
+      if (found) {
+        console.log('Found item ' + item.name + ' in cart, therefore incrementing qty');
+        found.qty = found.qty + 1;
+      }
+      else {
+        console.log('Adding item to cart: ' + item.name);
+        user.cart.push( new CartItem( { item: item, qty: 1 } ) );
+      }
+      user.save(function() {
+        user.populate('cart.item', function(err, user) {
+          return res.json(201, user.cart );
+        });
+      });
+    });
+  });
+};
+
+// Remove an item from the cart and return the cart.
+exports.removeItem = function(req, res) {
+  console.log('removeItem, url = ' + req.url);
+  var userId = req.params.userid;
+  var cartItemId = req.params.itemid;
+  console.log('userId: ' + userId + ', cartItemId: ' + cartItemId);
+
+  // Remove the item, get the updated cart, and return the cart
+  User.findById(userId, function(err, user) {
+    if (err) { return handleError(res, err); }
+    if (!user) { return res.send(404); }
+
+    // Check if item is already in cart
+    var found = findItemInCart(user, cartItemId);
+    if (found) {
+      console.log('Removing item from cart');
+      user.cart.pull(found._id);               // pull is a feature of MongooseArray!
+    }
+    else {
+      return res.send(404);
+    }
+    user.save(function() {
+      user.populate('cart.item', function(err, user) {
+        return res.json(201, user.cart );
+      });
+    });
+  });
+};
+
+// Remove all items from the cart in the DB.
+exports.removeAllItems = function(req, res) {
+  console.log('removeAllItems, url = ' + req.url);
+  var userId = req.params.userid;
+  console.log('userId: ' + userId);
+
+  // remove all items from cart and return the cart
+  User.findById(userId, function(err, user) {
+    if (err) { return handleError(res, err); }
+    if (!user) { return res.send(404); }
+
+    user.cart = new Array();
+    user.save(function() {
+      user.populate('cart.item', function(err, user) {
+        return res.send(204, user.cart);
+      });
+    });
+  });
+}
+
+function handleError(res, err) {
+  return res.send(500, err);
+}
+```
+
+10f. Edit `server/routes.js` and replace the line:
+
+`app.use('/api/users/:userId/cart', require('./api/cart'));`
+
+with:
+
+`app.use('/api/users',  require('./api/cart'));`
+
+10g. Commit your work:
+
+```bash
+git add -A
+git commit -m "Added RESTful endpoints and model for Shopping Cart."
+git tag step10
+```
+
+
+---
+
+
+### Step 5 - Create a New Client Route for Items
 
 In this step we will create a new _client-side_ route for our items. Note that in the _MEAN Stack_ we have both _server-side_ and _client-side_ routes:
 
 * _server-side_ routes - consist of the RESTful endpoints that our client code can call via HTTP GET/PUT/POST/DELETE requests.
 * _client-side_ routes - consist of the views that we can navigate to inside our _AngularJS_ application.
 
-4a. Use the Yeoman generator to create a new client route for our items view:
+5a. Use the Yeoman generator to create a new client route for our items view:
 
 ```bash
 yo angular-fullstack:route items
@@ -340,7 +535,7 @@ yo angular-fullstack:route items
 
 Accept the default values for the module name, source location, and url of the route.
 
-4b. Edit the file `client/components/navbar/navbar.html` and remove the `ng-controller` attribute. We don't need it as it is specified in the `navbar.directive.js` file (this is a bug in the generator).
+5b. Edit the file `client/components/navbar/navbar.html` and remove the `ng-controller` attribute. We don't need it as it is specified in the `navbar.directive.js` file (this is a bug in the generator).
 
 change this:
 
@@ -372,11 +567,11 @@ and add this line after the `Admin` link:
 <li ng-show="nav.isLoggedIn()" ui-sref-active="active"><a ui-sref="items">Items</a></li>
 ```
 
-4c. Test out your NavBar and new _Client-Side_ route:
+5c. Test out your NavBar and new _Client-Side_ route:
 
 You may need to restart your server (using `gulp serve`). Then login and see if the NavBar contains the _Items_ link. Click on it and see if your _Items_ view appears.
 
-4d. Commit your work
+5d. Commit your work
 
 ```bash
 git add -A
@@ -386,9 +581,9 @@ git tag step4
 
 ---
 
-### Step 5 - Create ItemService and CartService
+### Step 6 - Create ItemService and CartService
 
-5a. Use the Yeoman generator to create two new client services:
+6a. Use the Yeoman generator to create two new client services:
 
 ```bash
 yo angular-fullstack:service itemService
@@ -397,7 +592,7 @@ yo angular-fullstack:service cartService
 
 When prompted, accept the default values except change the module name for each service to `gaCampingStoreApp` instead of `gaCampingStoreApp.itemService` and `gaCampingStoreApp.cartService`.
 
-5b. Edit `client/app/items/itemService/itemService.service.js` and set its contents to:
+6b. Edit `client/app/items/itemService/itemService.service.js` and set its contents to:
 
 ```javascript
 'use strict';
@@ -417,7 +612,7 @@ angular.module('gaCampingStoreApp.itemService')
   });
 ```
 
-5c. Edit `client/app/cartService/cartService.service.js` and set its contents to:
+6c. Edit `client/app/cartService/cartService.service.js` and set its contents to:
 
 ```javascript
 'use strict';
@@ -460,7 +655,7 @@ angular.module('gaCampingStoreApp')
   });
 ```
 
-5d. Commit your work
+6d. Commit your work
 
 ```bash
 git add -A
@@ -468,15 +663,15 @@ git commit -m "Created ItemService and CartService."
 git tag step5
 ```
 
-5e. Summary
+6e. Summary
 
 In this step we created the _Client-Side_ services `ItemService` and `CartService`. These services have the responsibility of communicating with the server to manage the Inventory and the current user's Shopping Cart.
 
 ---
 
-### Step 6 - Implement the Items Controller and Items Filter
+### Step 7 - Implement the Items Controller and Items Filter
 
-6a. Edit `client/app/items/items.controller.js` and set its content to:
+7a. Edit `client/app/items/items.controller.js` and set its content to:
 
 ```javascript
 'use strict';
@@ -593,7 +788,7 @@ angular.module('gaCampingStoreApp')
 })();
 ```
 
-6b. Use the Yeoman generator to create a new AngularJS filter for our Item Search feature.
+7b. Use the Yeoman generator to create a new AngularJS filter for our Item Search feature.
 
 ```bash
 yo angular-fullstack:filter itemFilter
@@ -601,7 +796,7 @@ yo angular-fullstack:filter itemFilter
 ? Where would you like to create this filter? client/app/items
 ```
 
-6c. Put the following code into `client/app/items/itemFilter/itemFilter.filter.js`:
+7c. Put the following code into `client/app/items/itemFilter/itemFilter.filter.js`:
 
 ```javascript
 'use strict';
@@ -629,7 +824,7 @@ angular.module('gaCampingStoreApp')
   });
 ```
 
-6d. Commit your work
+7d. Commit your work
 
 ```bash
 git add -A
@@ -637,8 +832,246 @@ git commit -m "Implemented the Items Controller and Items Filter."
 git tag step6
 ```
 
-6e. Summary
+7e. Summary
 
 In this step we implemented the Items Controller logic and added a custom _Angular_ filter for our Items.
 
 ---
+
+### Step 8 - Implement the Items View
+
+8a. Edit `client/app/items/items.html` and replace its contents with:
+
+```html
+
+```
+
+8b. Edit `client/app/app.scss` and add the following after the `browsehappy` rule:
+
+```css
+.thumbnail {
+  height: 200px;
+
+  img.pull-right {
+    width: 50px;
+  }
+}
+
+/* Space out content a bit */
+body {
+  padding-top: 20px;
+  padding-bottom: 20px;
+}
+
+/* Everything but the jumbotron gets side spacing for mobile first views */
+.header,
+.marketing,
+.footer {
+  padding-left: 15px;
+  padding-right: 15px;
+}
+
+/* Custom page header */
+.header {
+  border-bottom: 1px solid #e5e5e5;
+
+  /* Make the masthead heading the same height as the navigation */
+  h3 {
+    margin-top: 0;
+    margin-bottom: 0;
+    line-height: 40px;
+    padding-bottom: 19px;
+  }
+}
+
+/* Custom page footer */
+.footer {
+  padding-top: 19px;
+  color: #777;
+  border-top: 1px solid #e5e5e5;
+}
+
+.container-narrow > hr {
+  margin: 30px 0;
+}
+
+/* Main marketing message and sign up button */
+.jumbotron {
+  text-align: center;
+  border-bottom: 1px solid #e5e5e5;
+
+  .btn {
+    font-size: 21px;
+    padding: 14px 24px;
+  }
+}
+
+/* Supporting marketing content */
+.marketing {
+  margin: 40px 0;
+
+  p + h4 {
+    margin-top: 28px;
+  }
+}
+
+/* Responsive: Portrait tablets and up */
+@media screen and (min-width: 768px) {
+  .container {
+    max-width: 900px;
+  }
+
+  /* Remove the padding we set earlier */
+  .header,
+  .marketing,
+  .footer {
+    padding-left: 0;
+    padding-right: 0;
+  }
+  /* Space out the masthead */
+  .header {
+    margin-bottom: 30px;
+  }
+  /* Remove the bottom border on the jumbotron for visual effect */
+  .jumbotron {
+    border-bottom: 0;
+  }
+}
+```
+
+8c. Edit `client/app/items/items.scss` and add the following content:
+
+```css
+.cart {
+  padding: 10px;
+
+  ul {
+    list-style-type: none;
+  }
+}
+
+.on-sale {
+  color: red;
+}
+
+.qty {
+  width: 60px;
+}
+
+$animation-duration: 0.25s;
+
+.animate-inventory {
+  &.ng-enter {
+    animation: zoomInUp 0.5s;
+  }
+  &.ng-leave {
+    animation: zoomOutDown 0.5s;
+  }
+}
+
+.animate-cart {
+  &.ng-enter {
+    animation: fadeInRight 1s;
+  }
+  &.ng-leave {
+    animation: fadeOutLeft 1s;
+  }
+}
+
+/* =========================== */
+/* Twitter Bootstrap Overrides */
+/* =========================== */
+.jumbotron {
+  text-align: center;
+  padding: 2px 0;
+  margin-bottom: 0;
+}
+
+.list-group-item {
+  border: none;
+}
+
+.dl-horizontal dt {
+    text-align: left;
+    /*margin-bottom: 1em;*/
+    /*width: auto;*/
+    padding-right: 1em;
+}
+
+.dl-horizontal dd {
+    margin-left: 0;
+    margin-bottom: 1em;
+}
+/* ================================== */
+/* End of Twitter Bootstrap Overrides */
+/* ================================== */
+
+.items {
+  padding-left: 0;
+  padding-right: 30px;
+}
+
+.items p {
+  font-size: 2.0rem;
+  margin-left: 20px;
+}
+
+.items h3 {
+  color: #337ab7;
+}
+
+.item {
+  margin-top: 30px;
+}
+
+.item h2 {
+  margin-bottom: 20px;
+}
+
+.item-image {
+  margin-top: 0px;
+  margin-left: 20px;
+}
+
+.item-image img {
+}
+
+.back {
+  margin-top: 40px;
+}
+
+.search {
+  text-align: center;
+}
+```
+
+
+
+
+
+
+
+8d. Copy the camping store images for our items into this project:
+
+Open a new terminal window and run the following from your project directory:
+
+```bash
+pushd <clone_of_fork_of_student_repo>
+git pull upstream master
+cd labs/mean/camping_store_images
+image_dir=`pwd`
+popd
+cd client/assets/images
+cp $image_dir/* .
+cd ../../..
+```
+
+8e. Commit your work
+
+```bash
+git add -A
+git commit -m "Implemented the Items Views and CSS."
+git tag step7
+```
+
+
