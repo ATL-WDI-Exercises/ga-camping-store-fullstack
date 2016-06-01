@@ -5,14 +5,20 @@ This is a simple Camping Store app built with the *MEAN* stack via the Yeoman
 
 ## Steps to Reproduce This Project
 
-The steps below will demonstrate how to create this project from scratch:
-
 * [Step 1 - Setup The Project](#step-1---setup-the-project)
+* [Step 2 - Install Additional Bower Components](#step-2---install-additional-bower-components)
+* [Step 3 - Create a RESTful API Endpoint and Seed Data for Items](#step-3---create-a-restful-api-endpoint-and-seed-data-for-items)
+* [Step 4 - Add RESTful endpoints and model for Shopping Cart](#step-4---add-restful-endpoints-and-model-for-shopping-cart)
+* [Step 5 - Create a New Client Route for Items](#step-5---create-a-new-client-route-for-items)
+* [Step 6 - Create ItemService and CartService](#step-6---create-itemservice-and-cartservice)
+* [Step 7 - Implement the Items Controller and Items Filter](#step-7---implement-the-items-controller-and-items-filter)
+* [Step 8 - Implement the Items View](#step-8---implement-the-items-view)
+* [Step 9 - Create a New Route for the Items Detail View](#step-9---create-a-new-route-for-the-items-detail-view)
 
 
 ---
 
-### Step 1 - Setup The Project
+## Step 1 - Setup The Project
 
 1a. Install the [Angular Fullstack](https://github.com/DaftMonk/generator-angular-fullstack) Yeoman generator.
 
@@ -58,7 +64,7 @@ In this step we used the `angular-fullstack` _Yeoman_ generator to scaffold a ne
 
 ---
 
-### Step 2 - Install Additional Bower Components
+## Step 2 - Install Additional Bower Components
 
 2a. Install the `angular-animate` and `animate.css` components:
 
@@ -113,7 +119,7 @@ We used `bower` to install two new client-side dependencies. We added one of the
 
 ---
 
-### Step 3 - Create a RESTful API Endpoint and Seed Data for Items
+## Step 3 - Create a RESTful API Endpoint and Seed Data for Items
 
 In this step we will use a _sub-generator_ of the _angular-fullstack_ generator to create a new RESTful API endpoint for our Camping Store inventory items. Then we will define a proper Schema for our `Item` _Mongoose_ model. Finally we will add some seed data for our inventory items.
 
@@ -316,7 +322,7 @@ In this step we used a _sub-generator_ of the _angular-fullstack_ generator to c
 
 
 
-### Step 4 - Add RESTful endpoints and model for Shopping Cart
+## Step 4 - Add RESTful endpoints and model for Shopping Cart
 
 In this step we will be saving the user's shopping cart to the MongoDB database. Each time a user adds or removes an item from the shopping cart an update will occur to keep the cart up to date in the database.
 
@@ -534,7 +540,7 @@ In this step we added a Shopping Cart to our User model and we added the cart RE
 
 ---
 
-### Step 5 - Create a New Client Route for Items
+## Step 5 - Create a New Client Route for Items
 
 In this step we will create a new _client-side_ route for our items. Note that in the _MEAN Stack_ we have both _server-side_ and _client-side_ routes:
 
@@ -599,7 +605,7 @@ We added a _Client-Side_ route for our items view.
 
 ---
 
-### Step 6 - Create ItemService and CartService
+## Step 6 - Create ItemService and CartService
 
 6a. Use the Yeoman generator to create two new client services:
 
@@ -687,7 +693,7 @@ In this step we created the _Client-Side_ services `ItemService` and `CartServic
 
 ---
 
-### Step 7 - Implement the Items Controller and Items Filter
+## Step 7 - Implement the Items Controller and Items Filter
 
 7a. Edit `client/app/items/items.controller.js` and set its content to:
 
@@ -855,7 +861,7 @@ In this step we implemented the Items Controller logic and added a custom _Angul
 
 ---
 
-### Step 8 - Implement the Items View
+## Step 8 - Implement the Items View
 
 8a. Edit `client/app/items/items.html` and replace its contents with:
 
@@ -1135,7 +1141,7 @@ git commit -m "Implemented the Items Views and CSS."
 git tag step8
 ```
 
-### Step 9 - Create a New Route for the Items Detail View
+## Step 9 - Create a New Route for the Items Detail View
 
 Coming Soon!!!
 
