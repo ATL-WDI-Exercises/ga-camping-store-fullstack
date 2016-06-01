@@ -98,10 +98,223 @@ angular.module('gaCampingStoreApp', [
   });
 ```
 
-2c. Commit changes:
+2c. Run a `gulp` build
+
+Let's do a full `gulp` build to update any files that depend on the new client-side dependencies:
+
+```bash
+gulp build
+```
+
+2d. Commit changes:
 
 ```bash
 git add -A
 git commit -m "Added some bower components."
 git tag step2
 ```
+
+2e. Summary
+
+We used `bower` to install two new client-side dependencies. We added one of them (`ng-animate`) to our `angular.module` declaration so that it would get properly bootstrapped by angular. We did *not* need to add `animate.css` to our `angular.module` declaration because it is not an _Angular_ module (`animate.css` is a simple CSS library).
+
+### Step 3 - Create a RESTful API Endpoint and Seed Data for Items
+
+In this step we will use a _sub-generator_ of the _angular-fullstack_ generator to create a new RESTful API endpoint for our Camping Store inventory items. Then we will define a proper Schema for our `Item` _Mongoose_ model. Finally we will add some seed data for our inventory items.
+
+3a. Use the Yeoman `angular-fullstack` generator to create a new RESTful endpoint:
+
+```bash
+yo angular-fullstack:endpoint item
+```
+
+Accept the default value for the url.
+
+The following files have just been added or modified for you:
+
+```
+new file:   server/api/item/index.js
+new file:   server/api/item/index.spec.js
+new file:   server/api/item/item.controller.js
+new file:   server/api/item/item.events.js
+new file:   server/api/item/item.integration.js
+new file:   server/api/item/item.model.js
+new file:   server/api/item/item.socket.js
+modified:   server/config/socketio.js
+modified:   server/routes.js
+```
+
+3b. Observations:
+
+* The generator created the directory `server/api/item` and placed into that directory the controller, events, model, socketio, and unit testing code for our items RESTful endpoint.
+* The main `socketio.js` config file was updated.
+* the main `routes.js` file was updated.
+
+3c. Edit the file `server/api/item/item.model.js` and set the schema to:
+
+```javascript
+var ItemSchema = new mongoose.Schema({
+  name:        String,
+  category:    String,
+  price:       { type: Number, min: 0, max: 9999.99 },
+  qty:         { type: Number, min: 0, max: 999 },
+  rating:      { type: Number, min: 0, max: 5.0 },
+  description: String,
+  imageFile:   String
+});
+```
+
+Add the following to the `server/config/seed.js` file:
+
+```javascript
+import Item from '../api/item/item.model';   // add this near the top of the file
+
+
+// add the following at the bottom of the file
+Item.find({}).remove()
+.then(() => {
+  return Item.create(
+    {
+      category: 'Tents',
+      name: '1-person Tent',
+      price: 119.99,
+      qty: 1,
+      rating: 3.8,
+      description: 'A very small tent.',
+      imageFile: '1_person_tent.jpg'
+    },
+    {
+      category: 'Tents',
+      name: '2-person Tent',
+      price: 169.99,
+      qty: 1,
+      rating: 4.4,
+      description: 'Just right for 2 people.',
+      imageFile: '2_person_tent.jpg'
+    },
+    {
+      category: 'Tents',
+      name: '3-person Tent',
+      price: 249.99,
+      qty: 1,
+      rating: 3.5,
+      description: '3 is a crowd!',
+      imageFile: '3_person_tent.jpg'
+    },
+    {
+      category: 'Tents',
+      name: '4-person Tent',
+      price: 319.99,
+      qty: 1,
+      rating: 4.7,
+      description: 'Fit for a family.',
+      imageFile: '4_person_tent.jpg'
+    },
+    {
+      category: 'Flashlights',
+      name: 'Small Flashlight',
+      price:   6.99,
+      qty: 1,
+      rating: 4.0,
+      description: 'A very small flashlight.',
+      imageFile: 'small_flashlight.jpg'
+    },
+    {
+      category: 'Flashlights',
+      name: 'Large Flashlight',
+      price:  12.99,
+      qty: 1,
+      rating: 4.3,
+      description: 'A big, powerful flashlight.',
+      imageFile: 'large_flashlight.jpg'
+    },
+    {
+      category: 'Water Bottles',
+      name: 'Small Water Bottle',
+      price:   2.99,
+      qty: 1,
+      rating: 2.7,
+      description: 'Holds 16 ounces.',
+      imageFile: 'small_water_bottle.jpg'
+    },
+    {
+      category: 'Water Bottles',
+      name: 'Large Water Bottle',
+      price:   2.99,
+      qty: 1,
+      rating: 3.1,
+      description: 'Holds 32 ounces.',
+      imageFile: 'large_water_bottle.jpg'
+    },
+    {
+      category: 'Stoves',
+      name: 'Small Stove',
+      price:  29.99,
+      qty: 1,
+      rating: 3.5,
+      description: 'Has 1 burner.',
+      imageFile: 'small_stove.jpg'
+    },
+    {
+      category: 'Stoves',
+      name: 'Large Stove',
+      price:  39.99,
+      qty: 1,
+      rating: 4.7,
+      description: 'Has 2 burners.',
+      imageFile: 'large_stove.jpg'
+    },
+    {
+      category: 'Sleeping Bags',
+      name: 'Simple Sleeping Bag',
+      price:  49.99,
+      qty: 1,
+      rating: 4.4,
+      description: 'A simple mummy bag.',
+      imageFile: 'simple_sleeping_bag.jpg'
+    },
+    {
+      category: 'Sleeping Bags',
+      name: 'Deluxe Sleeping Bag',
+      price:  79.99,
+      qty: 1,
+      rating: 4.8,
+      description: 'Will keep you warm in very cold weather!',
+      imageFile: 'deluxe_sleeping_bag.png'
+    }
+  )
+})
+.then(() => {
+  return Item.find({});
+})
+.then((items) => {
+  console.log('Finished populating ' + items.length + ' items.');
+})
+.catch((err) => {
+  console.log('ERROR:', err);
+});
+```
+
+If you have `grunt serve` running and you save the `seed.js` file you should see the message "Finished populating 12 items." You can also verify that the seed data was saved to `mongodb` using `mongo` or a tool like [mongo-express](http://andzdroid.github.io/mongo-express/).
+
+3c. Test out your new RESTful endpoint:
+
+A simple test is to load the _index_ route for the items via your browser. Simply load the following URL in your browser:
+
+    http://localhost:9000/api/items
+
+You should see the seed data in `JSON` format returned from the Express server!
+
+3d. Commit your work
+
+```bash
+git add -A
+git commit -m "Created a RESTful API Endpoint, Schema, and Seed Data for Items."
+git tag step3
+```
+
+3e. Summary
+
+In this step we used a _sub-generator_ of the _angular-fullstack_ generator to create a new RESTful API endpoint for our camping store items. Then we updated the generated _Mongoose_ model to define the _schema_ for an `item`. Finally we added some seed data for our camping store items.
+
+
