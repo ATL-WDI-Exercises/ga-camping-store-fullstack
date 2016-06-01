@@ -383,3 +383,89 @@ git add -A
 git commit -m "Created a new Client Route for Items."
 git tag step4
 ```
+
+### Step 5 - Create ItemService and CartService
+
+5a. Use the Yeoman generator to create two new client services:
+
+```bash
+yo angular-fullstack:service itemService
+yo angular-fullstack:service cartService
+```
+
+When prompted, accept the default values except change the module name for each service to `gaCampingStoreApp` instead of `gaCampingStoreApp.itemService` and `gaCampingStoreApp.cartService`.
+
+5b. Edit `client/app/items/itemService/itemService.service.js` and set its contents to:
+
+```javascript
+'use strict';
+
+angular.module('gaCampingStoreApp.itemService')
+  .service('itemService', function($http) {
+
+    var svc = this;
+
+    svc.findItemById = function(id) {
+      return $http.get('/api/items/' + id);
+    };
+
+    svc.getItems = function() {
+      return $http.get('/api/items');
+   };
+  });
+```
+
+5c. Edit `client/app/cartService/cartService.service.js` and set its contents to:
+
+```javascript
+'use strict';
+
+angular.module('gaCampingStoreApp')
+  .service('cartService', function ($http, Auth) {
+
+    var that = this;
+
+    that.getCart = function() {
+      var userId = Auth.getCurrentUser()._id;
+      return $http.get('/api/users/' + userId + '/cart/');
+    };
+
+    that.addItem = function(item) {
+      var userId = Auth.getCurrentUser()._id;
+      return $http.post('/api/users/' + userId + '/cart/' + item._id);
+    };
+
+    that.removeItem = function(cartItem) {
+      var userId = Auth.getCurrentUser()._id;
+      return $http.delete('/api/users/' + userId + '/cart/' + cartItem._id);
+    };
+
+    that.getCost = function(cartItem) {
+      return cartItem.qty * cartItem.item.price;
+    };
+
+    that.getTotal = function(cart) {
+      var total = _.reduce(cart, function(sum, cartItem) {
+        return sum + that.getCost(cartItem);
+      }, 0);
+      return total;
+    };
+
+    that.clearCart = function() {
+      var userId = Auth.getCurrentUser()._id;
+      return $http.delete('/api/users/' + userId + '/cart/');
+    };
+  });
+```
+
+5d. Commit your work
+
+```bash
+git add -A
+git commit -m "Created ItemService and CartService."
+git tag step5
+```
+
+5e. Summary
+
+In this step we created the _Client-Side_ services `ItemService` and `CartService`. These services have the responsibility of communicating with the server to manage the Inventory and the current user's Shopping Cart.
