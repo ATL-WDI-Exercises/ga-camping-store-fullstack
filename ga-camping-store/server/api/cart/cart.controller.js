@@ -23,7 +23,7 @@ exports.get = function(req, res) {
   User.findById(userId)
   .populate('cart.item')
   .exec(function(err, user) {
-    console.log('user: ' + user.name);
+    console.log('user: ' + (user ? user.name : ''));
     if (err) { return handleError(res, err); }
     if (!user) { return res.send(404); }
     console.log('returning cart: ' + JSON.stringify(user.cart));
@@ -104,7 +104,7 @@ exports.removeAllItems = function(req, res) {
     if (err) { return handleError(res, err); }
     if (!user) { return res.send(404); }
 
-    user.cart = new Array();
+    user.cart = [];
     user.save(function() {
       user.populate('cart.item', function(err, user) {
         return res.send(204, user.cart);

@@ -3,35 +3,36 @@
 angular.module('gaCampingStoreApp')
   .service('cartService', function ($http, Auth) {
 
-    var that = this;
+    var svc = this;
 
-    that.getCart = function() {
+    svc.getCart = function() {
       var userId = Auth.getCurrentUser()._id;
       return $http.get('/api/users/' + userId + '/cart/');
     };
 
-    that.addItem = function(item) {
+    svc.addItem = function(item) {
       var userId = Auth.getCurrentUser()._id;
       return $http.post('/api/users/' + userId + '/cart/' + item._id);
     };
 
-    that.removeItem = function(cartItem) {
+    svc.removeItem = function(cartItem) {
       var userId = Auth.getCurrentUser()._id;
       return $http.delete('/api/users/' + userId + '/cart/' + cartItem._id);
     };
 
-    that.getCost = function(cartItem) {
+    svc.getCost = function(cartItem) {
       return cartItem.qty * cartItem.item.price;
     };
 
-    that.getTotal = function(cart) {
+    svc.getTotal = function(cart) {
       var total = _.reduce(cart, function(sum, cartItem) {
-        return sum + that.getCost(cartItem);
+        return sum + svc.getCost(cartItem);
       }, 0);
+      console.log('total:', total);
       return total;
     };
 
-    that.clearCart = function() {
+    svc.clearCart = function() {
       var userId = Auth.getCurrentUser()._id;
       return $http.delete('/api/users/' + userId + '/cart/');
     };

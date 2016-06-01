@@ -69,7 +69,7 @@ Item.find({}).remove()
       qty: 1,
       rating: 3.8,
       description: 'A very small tent.',
-      imageFile: '1_person_tent.jpg'
+      imageFile: 'inventory/1_person_tent.jpg'
     },
     {
       category: 'Tents',
@@ -78,7 +78,7 @@ Item.find({}).remove()
       qty: 1,
       rating: 4.4,
       description: 'Just right for 2 people.',
-      imageFile: '2_person_tent.jpg'
+      imageFile: 'inventory/2_person_tent.jpg'
     },
     {
       category: 'Tents',
@@ -87,7 +87,7 @@ Item.find({}).remove()
       qty: 1,
       rating: 3.5,
       description: '3 is a crowd!',
-      imageFile: '3_person_tent.jpg'
+      imageFile: 'inventory/3_person_tent.jpg'
     },
     {
       category: 'Tents',
@@ -96,7 +96,7 @@ Item.find({}).remove()
       qty: 1,
       rating: 4.7,
       description: 'Fit for a family.',
-      imageFile: '4_person_tent.jpg'
+      imageFile: 'inventory/4_person_tent.jpg'
     },
     {
       category: 'Flashlights',
@@ -105,7 +105,7 @@ Item.find({}).remove()
       qty: 1,
       rating: 4.0,
       description: 'A very small flashlight.',
-      imageFile: 'small_flashlight.jpg'
+      imageFile: 'inventory/small_flashlight.jpg'
     },
     {
       category: 'Flashlights',
@@ -114,7 +114,7 @@ Item.find({}).remove()
       qty: 1,
       rating: 4.3,
       description: 'A big, powerful flashlight.',
-      imageFile: 'large_flashlight.jpg'
+      imageFile: 'inventory/large_flashlight.jpg'
     },
     {
       category: 'Water Bottles',
@@ -123,7 +123,7 @@ Item.find({}).remove()
       qty: 1,
       rating: 2.7,
       description: 'Holds 16 ounces.',
-      imageFile: 'small_water_bottle.jpg'
+      imageFile: 'inventory/small_water_bottle.jpg'
     },
     {
       category: 'Water Bottles',
@@ -132,7 +132,7 @@ Item.find({}).remove()
       qty: 1,
       rating: 3.1,
       description: 'Holds 32 ounces.',
-      imageFile: 'large_water_bottle.jpg'
+      imageFile: 'inventory/large_water_bottle.jpg'
     },
     {
       category: 'Stoves',
@@ -141,7 +141,7 @@ Item.find({}).remove()
       qty: 1,
       rating: 3.5,
       description: 'Has 1 burner.',
-      imageFile: 'small_stove.jpg'
+      imageFile: 'inventory/small_stove.jpg'
     },
     {
       category: 'Stoves',
@@ -150,7 +150,7 @@ Item.find({}).remove()
       qty: 1,
       rating: 4.7,
       description: 'Has 2 burners.',
-      imageFile: 'large_stove.jpg'
+      imageFile: 'inventory/large_stove.jpg'
     },
     {
       category: 'Sleeping Bags',
@@ -159,7 +159,7 @@ Item.find({}).remove()
       qty: 1,
       rating: 4.4,
       description: 'A simple mummy bag.',
-      imageFile: 'simple_sleeping_bag.jpg'
+      imageFile: 'inventory/simple_sleeping_bag.jpg'
     },
     {
       category: 'Sleeping Bags',
@@ -168,7 +168,7 @@ Item.find({}).remove()
       qty: 1,
       rating: 4.8,
       description: 'Will keep you warm in very cold weather!',
-      imageFile: 'deluxe_sleeping_bag.png'
+      imageFile: 'inventory/deluxe_sleeping_bag.png'
     }
   )
 })

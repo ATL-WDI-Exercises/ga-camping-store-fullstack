@@ -8,12 +8,10 @@ class ItemsComponent {
     this.cartService = cartService;
     this.searchText = '';
     this.cart = [];
-    this.total = 0;
 
     // Load cart data from server
-    this.cartService.getCart().then(function(json) {
+    this.cartService.getCart().then((json) => {
       this.updateCartFromServer(json.data);
-      this.total = this.cartService.getTotal(this.cart);
     });
 
     // load inventory items from server
@@ -60,24 +58,22 @@ class ItemsComponent {
   }
 
   getInventory() {
-    this.itemService.getItems().then(function(json) {
+    this.itemService.getItems().then((json) => {
       this.inventory = json.data;
     });
   }
 
   addItem(item) {
-    this.cartService.addItem(item).then(function(json) {
+    this.cartService.addItem(item).then((json) => {
       this.updateCartFromServer(json.data);
-      this.total = this.cartService.getTotal(this.cart);
     }, function(err) {
       console.log('ERROR: addItem: ' + JSON.stringify(err));
     });
   }
 
   removeItem(item) {
-    this.cartService.removeItem(item).then(function(json) {
+    this.cartService.removeItem(item).then((json) => {
       this.updateCartFromServer(json.data);
-      this.total = this.cartService.getTotal(this.cart);
     }, function(err) {
       console.log('ERROR: removeItem: ' + JSON.stringify(err));
     });
@@ -88,9 +84,8 @@ class ItemsComponent {
   }
 
   clearCart() {
-    return this.cartService.clearCart().then(function(json) {
+    return this.cartService.clearCart().then((json) => {
       this.updateCartFromServer(json.data);
-      this.total = this.cartService.getTotal(this.cart);
     }, function(err) {
       console.log('clearCart delete ERROR: ' + JSON.stringify(err));
     });
@@ -100,6 +95,10 @@ class ItemsComponent {
     this.$state.go('itemDetail', {
       itemId: item._id
     });
+  }
+
+  getTotal() {
+    return this.cartService.getTotal(this.cart);
   }
 }
 

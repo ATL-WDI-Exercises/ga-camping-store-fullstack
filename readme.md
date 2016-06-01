@@ -176,7 +176,7 @@ Item.find({}).remove()
       qty: 1,
       rating: 3.8,
       description: 'A very small tent.',
-      imageFile: '1_person_tent.jpg'
+      imageFile: 'inventory/1_person_tent.jpg'
     },
     {
       category: 'Tents',
@@ -185,7 +185,7 @@ Item.find({}).remove()
       qty: 1,
       rating: 4.4,
       description: 'Just right for 2 people.',
-      imageFile: '2_person_tent.jpg'
+      imageFile: 'inventory/2_person_tent.jpg'
     },
     {
       category: 'Tents',
@@ -194,7 +194,7 @@ Item.find({}).remove()
       qty: 1,
       rating: 3.5,
       description: '3 is a crowd!',
-      imageFile: '3_person_tent.jpg'
+      imageFile: 'inventory/3_person_tent.jpg'
     },
     {
       category: 'Tents',
@@ -203,7 +203,7 @@ Item.find({}).remove()
       qty: 1,
       rating: 4.7,
       description: 'Fit for a family.',
-      imageFile: '4_person_tent.jpg'
+      imageFile: 'inventory/4_person_tent.jpg'
     },
     {
       category: 'Flashlights',
@@ -212,7 +212,7 @@ Item.find({}).remove()
       qty: 1,
       rating: 4.0,
       description: 'A very small flashlight.',
-      imageFile: 'small_flashlight.jpg'
+      imageFile: 'inventory/small_flashlight.jpg'
     },
     {
       category: 'Flashlights',
@@ -221,7 +221,7 @@ Item.find({}).remove()
       qty: 1,
       rating: 4.3,
       description: 'A big, powerful flashlight.',
-      imageFile: 'large_flashlight.jpg'
+      imageFile: 'inventory/large_flashlight.jpg'
     },
     {
       category: 'Water Bottles',
@@ -230,7 +230,7 @@ Item.find({}).remove()
       qty: 1,
       rating: 2.7,
       description: 'Holds 16 ounces.',
-      imageFile: 'small_water_bottle.jpg'
+      imageFile: 'inventory/small_water_bottle.jpg'
     },
     {
       category: 'Water Bottles',
@@ -239,7 +239,7 @@ Item.find({}).remove()
       qty: 1,
       rating: 3.1,
       description: 'Holds 32 ounces.',
-      imageFile: 'large_water_bottle.jpg'
+      imageFile: 'inventory/large_water_bottle.jpg'
     },
     {
       category: 'Stoves',
@@ -248,7 +248,7 @@ Item.find({}).remove()
       qty: 1,
       rating: 3.5,
       description: 'Has 1 burner.',
-      imageFile: 'small_stove.jpg'
+      imageFile: 'inventory/small_stove.jpg'
     },
     {
       category: 'Stoves',
@@ -257,7 +257,7 @@ Item.find({}).remove()
       qty: 1,
       rating: 4.7,
       description: 'Has 2 burners.',
-      imageFile: 'large_stove.jpg'
+      imageFile: 'inventory/large_stove.jpg'
     },
     {
       category: 'Sleeping Bags',
@@ -266,7 +266,7 @@ Item.find({}).remove()
       qty: 1,
       rating: 4.4,
       description: 'A simple mummy bag.',
-      imageFile: 'simple_sleeping_bag.jpg'
+      imageFile: 'inventory/simple_sleeping_bag.jpg'
     },
     {
       category: 'Sleeping Bags',
@@ -275,7 +275,7 @@ Item.find({}).remove()
       qty: 1,
       rating: 4.8,
       description: 'Will keep you warm in very cold weather!',
-      imageFile: 'deluxe_sleeping_bag.png'
+      imageFile: 'inventory/deluxe_sleeping_bag.png'
     }
   )
 })
@@ -490,7 +490,7 @@ exports.removeAllItems = function(req, res) {
     if (err) { return handleError(res, err); }
     if (!user) { return res.send(404); }
 
-    user.cart = new Array();
+    user.cart = [];
     user.save(function() {
       user.populate('cart.item', function(err, user) {
         return res.send(204, user.cart);
@@ -504,7 +504,15 @@ function handleError(res, err) {
 }
 ```
 
-4f. Edit `server/routes.js` and replace the line:
+4f. Edit `/server/api/cart/cart.events.js` and replace `Item` with `CartItem`:
+
+```javascript
+import CartItem from './cartitem.model';      // was import Cart from
+
+CartItem.schema.post(e, emitEvent(event));    // was Cart.schema
+```
+
+4g. Edit `server/routes.js` and replace the line:
 
 `app.use('/api/users/:userId/cart', require('./api/cart'));`
 
@@ -512,7 +520,7 @@ with:
 
 `app.use('/api/users',  require('./api/cart'));`
 
-4g. Commit your work:
+4h. Commit your work:
 
 ```bash
 git add -A
@@ -520,9 +528,11 @@ git commit -m "Added RESTful endpoints and model for Shopping Cart."
 git tag step4
 ```
 
+4i. Summary
+
+In this step we added a Shopping Cart to our User model and we added the cart RESTful endpoints as nested URLs under the user URL.
 
 ---
-
 
 ### Step 5 - Create a New Client Route for Items
 
@@ -580,8 +590,12 @@ You may need to restart your server (using `gulp serve`). Then login and see if 
 ```bash
 git add -A
 git commit -m "Created a new Client Route for Items."
-git tag step4
+git tag step5
 ```
+
+5e. Summary
+
+We added a _Client-Side_ route for our items view.
 
 ---
 
@@ -664,7 +678,7 @@ angular.module('gaCampingStoreApp')
 ```bash
 git add -A
 git commit -m "Created ItemService and CartService."
-git tag step5
+git tag step6
 ```
 
 6e. Summary
@@ -688,12 +702,10 @@ class ItemsComponent {
     this.cartService = cartService;
     this.searchText = '';
     this.cart = [];
-    this.total = 0;
 
     // Load cart data from server
-    this.cartService.getCart().then(function(json) {
+    this.cartService.getCart().then((json) => {
       this.updateCartFromServer(json.data);
-      this.total = this.cartService.getTotal(this.cart);
     });
 
     // load inventory items from server
@@ -740,24 +752,22 @@ class ItemsComponent {
   }
 
   getInventory() {
-    this.itemService.getItems().then(function(json) {
+    this.itemService.getItems().then((json) => {
       this.inventory = json.data;
     });
   }
 
   addItem(item) {
-    this.cartService.addItem(item).then(function(json) {
+    this.cartService.addItem(item).then((json) => {
       this.updateCartFromServer(json.data);
-      this.total = this.cartService.getTotal(this.cart);
     }, function(err) {
       console.log('ERROR: addItem: ' + JSON.stringify(err));
     });
   }
 
   removeItem(item) {
-    this.cartService.removeItem(item).then(function(json) {
+    this.cartService.removeItem(item).then((json) => {
       this.updateCartFromServer(json.data);
-      this.total = this.cartService.getTotal(this.cart);
     }, function(err) {
       console.log('ERROR: removeItem: ' + JSON.stringify(err));
     });
@@ -768,9 +778,8 @@ class ItemsComponent {
   }
 
   clearCart() {
-    return this.cartService.clearCart().then(function(json) {
+    return this.cartService.clearCart().then((json) => {
       this.updateCartFromServer(json.data);
-      this.total = this.cartService.getTotal(this.cart);
     }, function(err) {
       console.log('clearCart delete ERROR: ' + JSON.stringify(err));
     });
@@ -780,6 +789,10 @@ class ItemsComponent {
     this.$state.go('itemDetail', {
       itemId: item._id
     });
+  }
+
+  getTotal() {
+    return this.cartService.getTotal(this.cart);
   }
 }
 
@@ -833,7 +846,7 @@ angular.module('gaCampingStoreApp')
 ```bash
 git add -A
 git commit -m "Implemented the Items Controller and Items Filter."
-git tag step6
+git tag step7
 ```
 
 7e. Summary
@@ -847,7 +860,62 @@ In this step we implemented the Items Controller logic and added a custom _Angul
 8a. Edit `client/app/items/items.html` and replace its contents with:
 
 ```html
+<section class="container search">
+  <form class="navbar-form" role="search">
+    <div class="form-group">
+      <input type="text" class="form-control" name="search" ng-model="$ctrl.searchText" placeholder="Search">
+    </div>
+    <button type="clear" class="btn btn-warning"
+            ng-click="$ctrl.searchText = ''">Reset</button>
+  </form>
+</section>
 
+<section class="container items">
+  <div class="list-group">
+    <div class="row">
+      <div class="col-lg-4 col-md-4 col-sm-6 col-xs-12 animate-inventory"
+           ng-repeat="item in filteredItems = ( $ctrl.inventory | itemFilter : $ctrl.searchText | orderBy: ['category', 'price'] )">
+        <a ng-click="$ctrl.goItem(item)" class="list-group-item">
+          <h3>{{ item.name }}</h3>
+          <article class="row">
+            <div class="col-xs-5">
+              <img class="middle" width=96px ng-src="/assets/images/{{item.imageFile}}"/>
+            </div>
+            <div class="col-xs-7">
+              <dl class="dl-horizontal">
+                <dt>Category:</dt>
+                <dd>{{ item.category }}</dd>
+                <dt>Price:</dt>
+                <dd>{{ item.price | currency }}</dd>
+                <dt>Rating:</dt>
+                <dd>{{ item.rating }} / 5</dd>
+              </dl>
+            </div>
+          </article>
+        </a>
+        <div class="text-center">
+          <button class="btn btn-sm btn-success" ng-click="$ctrl.addItem(item)">Add to Cart</button>
+        </div>
+      </div>
+      <div class="animate-inventory text-center" ng-hide="filteredItems.length">
+        <h3>No items match your search.</h3>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="cart text-center">
+  <h2>Your Cart:</h2>
+  <ul>
+    <li class="cart animate-cart" ng-repeat="item in $ctrl.cart">
+      <span>{{ item.qty + ' x ' + item.item.name + ' = ' + ($ctrl.getCost(item) | currency) }}</span>
+      <button class="btn btn-danger btn-xs" ng-click="$ctrl.removeItem(item)">Remove Item</button>
+    </li>
+  </ul>
+  <h3>Total: {{ $ctrl.getTotal() | currency }}</h3>
+  <br>
+  <button class="btn btn-danger" ng-click="$ctrl.clearCart()">Clear Cart</button>
+</section>
 ```
 
 8b. Edit `client/app/app.scss` and add the following after the `browsehappy` rule:
@@ -1049,24 +1117,13 @@ $animation-duration: 0.25s;
 }
 ```
 
-
-
-
-
-
-
 8d. Copy the camping store images for our items into this project:
 
-Open a new terminal window and run the following from your project directory:
+Run the following command to copy the camping store item images from GitHub into this project:
 
 ```bash
-pushd <clone_of_fork_of_student_repo>
-git pull upstream master
-cd labs/mean/camping_store_images
-image_dir=`pwd`
-popd
 cd client/assets/images
-cp $image_dir/* .
+svn export https://github.com/drmikeh/ga_camping_store_angular/trunk/src/assets/images/inventory
 cd ../../..
 ```
 
@@ -1075,7 +1132,11 @@ cd ../../..
 ```bash
 git add -A
 git commit -m "Implemented the Items Views and CSS."
-git tag step7
+git tag step8
 ```
+
+### Step 9 - Create a New Route for the Items Detail View
+
+Coming Soon!!!
 
 

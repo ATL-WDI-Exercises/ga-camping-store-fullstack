@@ -16,6 +16,7 @@ function respondWithResult(res, statusCode) {
   statusCode = statusCode || 200;
   return function(entity) {
     if (entity) {
+      console.log('item.controller.js respondWithResult:', entity);
       res.status(statusCode).json(entity);
     }
   };
