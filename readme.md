@@ -384,6 +384,8 @@ git commit -m "Created a new Client Route for Items."
 git tag step4
 ```
 
+---
+
 ### Step 5 - Create ItemService and CartService
 
 5a. Use the Yeoman generator to create two new client services:
@@ -469,3 +471,174 @@ git tag step5
 5e. Summary
 
 In this step we created the _Client-Side_ services `ItemService` and `CartService`. These services have the responsibility of communicating with the server to manage the Inventory and the current user's Shopping Cart.
+
+---
+
+### Step 6 - Implement the Items Controller and Items Filter
+
+6a. Edit `client/app/items/items.controller.js` and set its content to:
+
+```javascript
+'use strict';
+(function(){
+
+class ItemsComponent {
+  constructor($state, itemService, cartService) {
+    this.$state = $state;
+    this.itemService = itemService;
+    this.cartService = cartService;
+    this.searchText = '';
+    this.cart = [];
+    this.total = 0;
+
+    // Load cart data from server
+    this.cartService.getCart().then(function(json) {
+      this.updateCartFromServer(json.data);
+      this.total = this.cartService.getTotal(this.cart);
+    });
+
+    // load inventory items from server
+    this.getInventory();
+  }
+
+  find(cart, item) {
+    var len = cart.length;
+    for (var i = 0; i < len; i++) {
+      if (cart[i]._id === item._id) {
+        return cart[i];
+      }
+    }
+    return null;
+  }
+
+  // diff the cartFromServer with our current cart and make the incremental modifications
+  // doing it this way makes our animation work.
+  updateCartFromServer(cartFromServer) {
+    // add cartItems in cartFromServer not found in this.cart
+    var len = cartFromServer.length;
+    var cartItem;
+    for (var i = 0; i < len; i++) {
+      cartItem = cartFromServer[i];
+      if (!this.find(this.cart, cartItem)) {
+        this.cart.splice(i, 0, cartItem);
+      }
+    }
+
+    // check for remove or update
+    i = this.cart.length;
+    while (i--) {
+      cartItem = this.cart[i];
+      // remove cartItems in this.cart not found in cartFromServer
+      var found = this.find(cartFromServer, cartItem);
+      if (!found) {
+        this.cart.splice(i, 1);
+      }
+      // update cartItems in this.cart this have a different qty in cartFromServer
+      else if (cartItem.qty !== found.qty) {
+        cartItem.qty = found.qty;
+      }
+    }
+  }
+
+  getInventory() {
+    this.itemService.getItems().then(function(json) {
+      this.inventory = json.data;
+    });
+  }
+
+  addItem(item) {
+    this.cartService.addItem(item).then(function(json) {
+      this.updateCartFromServer(json.data);
+      this.total = this.cartService.getTotal(this.cart);
+    }, function(err) {
+      console.log('ERROR: addItem: ' + JSON.stringify(err));
+    });
+  }
+
+  removeItem(item) {
+    this.cartService.removeItem(item).then(function(json) {
+      this.updateCartFromServer(json.data);
+      this.total = this.cartService.getTotal(this.cart);
+    }, function(err) {
+      console.log('ERROR: removeItem: ' + JSON.stringify(err));
+    });
+  }
+
+  getCost(item) {
+    return this.cartService.getCost(item);
+  }
+
+  clearCart() {
+    return this.cartService.clearCart().then(function(json) {
+      this.updateCartFromServer(json.data);
+      this.total = this.cartService.getTotal(this.cart);
+    }, function(err) {
+      console.log('clearCart delete ERROR: ' + JSON.stringify(err));
+    });
+  }
+
+  goItem(item) {
+    this.$state.go('itemDetail', {
+      itemId: item._id
+    });
+  }
+}
+
+angular.module('gaCampingStoreApp')
+  .component('items', {
+    templateUrl: 'app/items/items.html',
+    controller: ItemsComponent
+  });
+
+})();
+```
+
+6b. Use the Yeoman generator to create a new AngularJS filter for our Item Search feature.
+
+```bash
+yo angular-fullstack:filter itemFilter
+? What module name would you like to use? gaCampingStoreApp
+? Where would you like to create this filter? client/app/items
+```
+
+6c. Put the following code into `client/app/items/itemFilter/itemFilter.filter.js`:
+
+```javascript
+'use strict';
+
+angular.module('gaCampingStoreApp')
+  .filter('itemFilter', function() {
+    function isMatch(str, pattern) {
+      return str.toLowerCase().indexOf(pattern.toLowerCase()) !== -1;
+    }
+
+    return function(inventory, searchText) {
+      var items = {
+        searchText: searchText,
+        out: []
+      };
+      angular.forEach(inventory, function (item) {
+        if (isMatch(item.category   , this.searchText) ||
+            isMatch(item.name       , this.searchText) ||
+            isMatch(item.description, this.searchText) ) {
+          this.out.push(item);
+        }
+      }, items);
+      return items.out;
+    };
+  });
+```
+
+6d. Commit your work
+
+```bash
+git add -A
+git commit -m "Implemented the Items Controller and Items Filter."
+git tag step6
+```
+
+6e. Summary
+
+In this step we implemented the Items Controller logic and added a custom _Angular_ filter for our Items.
+
+---
